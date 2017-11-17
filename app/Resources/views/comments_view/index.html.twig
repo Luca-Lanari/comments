@@ -1,0 +1,122 @@
+{% extends 'base.html.twig' %}
+{% block head %}
+    {{ parent() }}
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <h4>Leave a comment</h4>    
+                    <div class="well">                                   
+                        <form role="form" method="POST" action="/new-comment/">
+                            <div class="form-group">
+                                Name:<textarea class="form-control" rows="1" name="name" required></textarea>
+                                Comment:<textarea class="form-control" rows="3" name="txtComment" required></textarea>
+                            </div>
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                <hr>
+
+                <!-- Posted Comments -->
+                    {% for id, p in parent_info %}
+                        <div class="media"> 
+                            <a class="pull-left" href="#">
+                                <img class="media-object" src="http://placehold.it/50x50" alt="">
+                            </a>
+                            <div class="media-body" id="parent_{{id}}">
+                                <h4 class="media-heading">{{ p.element.name|e }}
+                                    <small>Posted {{ p.element.date|date('d/m/Y') }} at {{ p.element.date|date('H:m') }}</small>   
+                                </h4>
+                                {{ p.element.text|e }}<br/>
+                                <div class="pull-right">
+                                    {% if p.child == true %} 
+                                        <div class="otherComments glyphicon glyphicon-plus text-primary" id="comment_{{id}}" title="show replies"></div>                                 
+                                    {% endif %} 
+                                    <a role="button" data-toggle="collapse" href="#replyComment{{id}}" aria-expanded="true" ><i class="fa fa-reply" aria-hidden="true" title="Reply"></i></a>      
+                                    <br/>
+                                </div>
+
+                                <!-- FORM REPLY COMMENT -->  
+                                    <div class="collapse" id="replyComment{{id}}">
+                                        <form method="POST" action="{{ path('reply-comment', {'id_parent': id }) }}">
+                                            <div class="form-group">
+                                                <label for="reply">Your reply</label>
+                                                <div class="form-group">
+                                                    Name:<textarea class="form-control" rows="1" name="name" required></textarea>
+                                                    Comment:<textarea class="form-control" rows="3" name="txtReplyComment" required></textarea>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-default">Send</button>
+                                        </form>                                            
+                                    </div>
+                                <!-- END FORM REPLY COMMENT -->
+                            </div>
+                        </div>
+                    {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% block javascripts %}
+        {{ parent() }}
+        <script type="text/javascript">            
+            $(document).ready(function(){
+                $(document).on("click",'.otherComments',function(e){
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    $(this).unbind();
+                    $(this).hide();
+                    var idString = $(this).attr('id');
+                    var id = idString.replace('comment_',''); 
+                    $.post('/get-replies/',{ id: id }).done(function(response){
+                        var obj = response;
+                        $.each(obj,function(key, value){
+                            var date = value.element.date.date.slice(0,16);
+                            var date_year = date.slice(0,4);
+                            var date_month = date.slice(5,7);
+                            var date_day = date.slice(8,10);
+                            var date_hour = date.slice(11,13);
+                            var date_min = date.slice(14,16);
+                            console.log(key);
+                            var html = 
+                                    "<div class='rList media' id='show_"+ key +"'>"+"<a class='pull-left' href='#'>" 
+                                    +   "<img class='customSize media-object' src='http://placehold.it/50x50' alt=''>" 
+                                    +   "</a>" 
+                                    +   "<div class='media-body' id= 'parent_"+ key +"'>" 
+                                    +       "<h4 class='media-heading'>" + value.element.name  
+                                    +           "<small> Posted "+ date_day + "/"+ date_month + "/" + date_year +" at "+ date_hour +":"+ date_min +"</small>" 
+                                    +       "</h4>" 
+                                    +       value.element.text + "<br/>"
+                                    +      "<div class='pull-right'>";                       
+                            if(value.child === true){
+                                html = html + "<div class='otherComments glyphicon glyphicon-plus text-primary' id='comment_" + key + "' title='show more'></div>";
+                                html = html + "<div class='showLess glyphicon glyphicon-minus text-primary' id='comment_" + key +"' title='show less' style='display:none;'></div>";                                                                   
+                            }
+                            html = html + "<a role='button' data-toggle='collapse' href='#replyComment" + key + "' aria-expanded='false' ><i class='fa fa-reply' aria-hidden='true' title='Reply'></i></a>"
+                                        + "<br/>" 
+                                        + "</div>"
+    
+                                        +"<div class='collapse' id='replyComment" + key + "'>"
+                                        +   "<form method='POST' action='/reply-comment/" + key + "'>"
+                                        +       "<div class='form-group'>"
+                                        +           "<label for='reply'>Your reply</label>"
+                                        +           "<div class='form-group'>"
+                                        +               "Name:<textarea class='form-control' rows='1' name='name' required></textarea>"
+                                        +               "Comment:<textarea class='form-control' rows='3' name='txtReplyComment' required></textarea>"
+                                        +           "</div>"
+                                        +       "</div>"
+                                        +       "<button type='submit' class='btn btn-default'>Send</button>"
+                                        +   "</form>"
+                                        + "</div>";                             
+                                              
+                            html = html + "</div>";
+                            html = html + "</div>";
+                            $("#parent_" + id).append(html);
+                        });                              
+                    }); 
+                });             
+            });
+        </script>
+    {% endblock %}
+{% endblock %}                         

@@ -1,0 +1,14 @@
+body {
+  padding-top: 54px;
+}
+
+@media screen and (min-width: 992px) {
+    body {
+        padding-top: 56px;
+    }
+    
+    .container {
+    max-width: 930px;
+  }
+
+}

@@ -1,0 +1,23 @@
+app:
+    resource: '@AppBundle/Controller/'
+    type: annotation
+    
+homepage:
+    path: /
+    defaults: {_controller:AppBundle:Index:showIndex }
+    
+new-comment:
+    path: /new-comment/
+    defaults: {_controller:AppBundle:Index:newComment }
+    
+reply-comment:
+    path: /reply-comment/{id_parent}
+    defaults: {_controller:AppBundle:Index:replyComment }
+    requirements:
+        id_parent: '\d+'
+        
+get-replies:
+    path: /get-replies/
+    defaults: {_controller:AppBundle:Index:getReplies }
+    
+    
